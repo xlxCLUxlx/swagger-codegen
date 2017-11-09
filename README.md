@@ -1,3 +1,11 @@
+# Swager Code Generator Modifications for Destiny 2 API
+
+I have modified some items to the swagger-codegen base classes to handle specific vendor extensions from the Detiny 2 API like x-enum-values.  I have not tested all languages but know this works with C#.  I have also made changes to to the C# abstract classes to now handle the format property that is used in the openapi-2.json file that was created by Bungie. This now allows for hashes for instace to be created a uint rather than int to prevent typecast errors.
+
+The allOf use that Bungie has implemented in properties for definitions is ignored by Swagger as it is not part of teh Swagger spec.  You can get my manually edit file from here which will prevent types as showing up as Object but instead allow for their intended $ref type to be used.
+
+https://raw.githubusercontent.com/xlxCLUxlx/api/allOf-Removal/openapi-2.json
+
 # Swagger Code Generator
 
 - Master (2.3.0): [![Build Status](https://img.shields.io/travis/swagger-api/swagger-codegen/master.svg?label=Petstore%20Integration%20Test)](https://travis-ci.org/swagger-api/swagger-codegen)
