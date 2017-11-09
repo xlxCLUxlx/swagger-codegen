@@ -328,10 +328,7 @@ public class DefaultCodegen {
      * @return the sanitized value for enum
      */
     public String toEnumValue(String value, String datatype) {
-    	// if there are quotes around the string remove them so we can test if the value is numeric
-    	value = value.replaceAll("^\"|\"$", "");
-    	
-    	if ("number".equalsIgnoreCase(datatype) || isNumeric(value)) {
+    	if ("number".equalsIgnoreCase(datatype)) {
             return value;
         } else {
             return "\"" + escapeText(value) + "\"";
