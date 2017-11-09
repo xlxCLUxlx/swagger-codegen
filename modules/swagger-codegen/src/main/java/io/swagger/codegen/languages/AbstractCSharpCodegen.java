@@ -113,6 +113,10 @@ public abstract class AbstractCSharpCodegen extends DefaultCodegen implements Co
                         "Double",
                         "Int32",
                         "Int64",
+                        "UInt32",
+                        "UInt64",
+                        "uint?",
+                        "ulong?",
                         "Float",
                         "Guid?",
                         "System.IO.Stream", // not really a primitive, we include it to avoid model import
@@ -142,6 +146,11 @@ public abstract class AbstractCSharpCodegen extends DefaultCodegen implements Co
         typeMapping.put("map", "Dictionary");
         typeMapping.put("object", "Object");
         typeMapping.put("uuid", "Guid?");
+        typeMapping.put("uint32", "uint?");
+        typeMapping.put("uint64", "ulong?");
+        
+        typeFormatMapping.put("uint32", "uint?");
+        typeFormatMapping.put("uint64", "ulong?");
     }
 
     public void setReturnICollection(boolean returnICollection) {
@@ -298,9 +307,11 @@ public abstract class AbstractCSharpCodegen extends DefaultCodegen implements Co
 
     @Override
     public Map<String, Object> postProcessModels(Map<String, Object> objs) {
-        List<Object> models = (List<Object>) objs.get("models");
+        @SuppressWarnings("unchecked")
+		List<Object> models = (List<Object>) objs.get("models");
         for (Object _mo : models) {
-            Map<String, Object> mo = (Map<String, Object>) _mo;
+            @SuppressWarnings("unchecked")
+			Map<String, Object> mo = (Map<String, Object>) _mo;
             CodegenModel cm = (CodegenModel) mo.get("model");
             for (CodegenProperty var : cm.vars) {
                 // check to see if model name is same as the property name
@@ -319,9 +330,11 @@ public abstract class AbstractCSharpCodegen extends DefaultCodegen implements Co
     public Map<String, Object> postProcessOperations(Map<String, Object> objs) {
         super.postProcessOperations(objs);
         if (objs != null) {
+        	@SuppressWarnings("unchecked")
             Map<String, Object> operations = (Map<String, Object>) objs.get("operations");
             if (operations != null) {
-                List<CodegenOperation> ops = (List<CodegenOperation>) operations.get("operation");
+                @SuppressWarnings("unchecked")
+				List<CodegenOperation> ops = (List<CodegenOperation>) operations.get("operation");
                 for (CodegenOperation operation : ops) {
 
                     // Check return types for collection
@@ -553,11 +566,20 @@ public abstract class AbstractCSharpCodegen extends DefaultCodegen implements Co
 
     @Override
     public String getSwaggerType(Property p) {
-        String swaggerType = super.getSwaggerType(p);
+    	String swaggerType = super.getSwaggerType(p);
         String type;
 
         if (swaggerType == null) {
             swaggerType = ""; // set swagger type to empty string if null
+        }
+        
+        if (p.getFormat() != null) {
+	        if (typeFormatMapping.containsKey(p.getFormat().toLowerCase())) {
+	        	type = typeFormatMapping.get(p.getFormat().toLowerCase());
+	        	if (languageSpecificPrimitives.contains(type)) {
+	                return type;
+	            }
+	        }
         }
 
         // TODO avoid using toLowerCase as typeMapping should be case-sensitive

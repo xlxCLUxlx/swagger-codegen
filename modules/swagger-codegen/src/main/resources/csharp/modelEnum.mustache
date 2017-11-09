@@ -11,6 +11,9 @@
         /// <summary>
         /// Enum {{name}} for {{{value}}}
         /// </summary>
+		{{#description}}
+		[DescriptionAttribute("{{{description}}}")]
+		{{/description}}
         [EnumMember(Value = {{#isInteger}}"{{/isInteger}}{{#isDouble}}"{{/isDouble}}{{{value}}}{{#isInteger}}"{{/isInteger}}{{#isDouble}}"{{/isDouble}})]
         {{name}}{{#isInteger}} = {{{value}}}{{/isInteger}}{{^-last}},
         {{/-last}}{{/enumVars}}{{/allowableValues}}
