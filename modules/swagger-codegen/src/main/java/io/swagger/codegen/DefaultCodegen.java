@@ -62,6 +62,8 @@ import io.swagger.models.properties.StringProperty;
 import io.swagger.models.properties.UUIDProperty;
 import io.swagger.util.Json;
 
+import static org.apache.commons.lang3.StringUtils.isNumeric;
+
 public class DefaultCodegen {
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultCodegen.class);
 
@@ -110,6 +112,11 @@ public class DefaultCodegen {
     protected Map<String, String> typeAliases = null;
 
     protected String ignoreFilePathOverride;
+    
+    // added this so that each language could take advantage if they choose to.
+    // Basically the idea is to allow for the format property to be taken into
+    // account when getting the language specific type.
+    protected Map<String, String> typeFormatMapping = new HashMap<String, String>();
 
     public List<CliOption> cliOptions() {
         return cliOptions;
@@ -226,9 +233,30 @@ public class DefaultCodegen {
         for (Object _mo : models) {
             Map<String, Object> mo = (Map<String, Object>) _mo;
             CodegenModel cm = (CodegenModel) mo.get("model");
-
+            
+            // for vendor extension x-enum-values
+            if (Boolean.TRUE.equals(cm.isEnum) && cm.vendorExtensions != null) {
+            	Map<String, Object> vendorExtensions = cm.vendorExtensions;
+            	List<Object> values = (List<Object>) vendorExtensions.get("x-enum-values");
+            	List<Map<String, String>> enumVars = new ArrayList<Map<String, String>>();
+                for (Object value : values) {
+                    Map<String, String> enumVar = new HashMap<String, String>();
+                    String enumName = ((Map<Character, String>) value).get("identifier").toString();
+                    String enumValue = ((Map<Character, String>) value).get("numericValue").toString();
+                    String enumDescription = "";
+                    Object enumDescObj = ((Map<Character, String>) value).get("description");
+                    if (enumDescObj != null)
+                    	enumDescription = enumDescObj.toString();
+                    enumVar.put("name", toEnumVarName(enumName, cm.dataType));
+                    enumVar.put("value", toEnumValue(enumValue, cm.dataType));
+                    if (StringUtils.isNotEmpty(enumDescription) && StringUtils.isNotBlank(enumDescription))
+                    	 enumVar.put("description", enumDescription);
+                    enumVars.add(enumVar);
+                }
+                cm.allowableValues.put("enumVars", enumVars);
+            }
             // for enum model
-            if (Boolean.TRUE.equals(cm.isEnum) && cm.allowableValues != null) {
+            else if (Boolean.TRUE.equals(cm.isEnum) && cm.allowableValues != null) {
                 Map<String, Object> allowableValues = cm.allowableValues;
                 List<Object> values = (List<Object>) allowableValues.get("values");
                 List<Map<String, String>> enumVars = new ArrayList<Map<String, String>>();
@@ -300,7 +328,10 @@ public class DefaultCodegen {
      * @return the sanitized value for enum
      */
     public String toEnumValue(String value, String datatype) {
-        if ("number".equalsIgnoreCase(datatype)) {
+    	// if there are quotes around the string remove them so we can test if the value is numeric
+    	value = value.replaceAll("^\"|\"$", "");
+    	
+    	if ("number".equalsIgnoreCase(datatype) || isNumeric(value)) {
             return value;
         } else {
             return "\"" + escapeText(value) + "\"";

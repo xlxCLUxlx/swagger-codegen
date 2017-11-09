@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNumeric;
 
 public class CSharpClientCodegen extends AbstractCSharpCodegen {
     @SuppressWarnings({"hiding"})
@@ -407,9 +408,11 @@ public class CSharpClientCodegen extends AbstractCSharpCodegen {
     public Map<String, Object> postProcessOperations(Map<String, Object> objs) {
         super.postProcessOperations(objs);
         if (objs != null) {
-            Map<String, Object> operations = (Map<String, Object>) objs.get("operations");
+            @SuppressWarnings("unchecked")
+			Map<String, Object> operations = (Map<String, Object>) objs.get("operations");
             if (operations != null) {
-                List<CodegenOperation> ops = (List<CodegenOperation>) operations.get("operation");
+                @SuppressWarnings("unchecked")
+				List<CodegenOperation> ops = (List<CodegenOperation>) operations.get("operation");
                 for (CodegenOperation operation : ops) {
                     if (operation.returnType != null) {
                         operation.returnContainer = operation.returnType;
@@ -648,11 +651,15 @@ public class CSharpClientCodegen extends AbstractCSharpCodegen {
         if (getSymbolName(value) != null) {
             return camelize(getSymbolName(value));
         }
-
+        
         // number
         if ("int?".equals(datatype) || "long?".equals(datatype) ||
                 "double?".equals(datatype) || "float?".equals(datatype)) {
-            String varName = "NUMBER_" + value;
+        	String varName =  value;
+            if (isNumeric(value))
+            {
+            	varName = "NUMBER_" + value;
+            }
             varName = varName.replaceAll("-", "MINUS_");
             varName = varName.replaceAll("\\+", "PLUS_");
             varName = varName.replaceAll("\\.", "_DOT_");
