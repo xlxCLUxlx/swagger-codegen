@@ -12,9 +12,6 @@
             /// <summary>
             /// Enum {{name}} for {{{value}}}
             /// </summary>
-			{{#description}}
-			[DescriptionAttribute("{{description}}")]
-			{{/description}}
             [EnumMember(Value = "{{{value}}}")]
             {{name}}{{#isLong}} = {{{value}}}{{/isLong}}{{#isInteger}} = {{{value}}}{{/isInteger}}{{^-last}},
             {{/-last}}{{/enumVars}}{{/allowableValues}}

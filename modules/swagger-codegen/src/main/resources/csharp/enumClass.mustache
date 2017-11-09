@@ -11,9 +11,6 @@
             /// <summary>
             /// {{description}}
             /// </summary>
-			{{#description}}
-			[Description("{{description}}")]
-			{{/description}}
             [EnumMember(Value = "{{{value}}}")]
             {{name}}{{#isLong}} = {{{value}}}{{/isLong}}{{#isInteger}} = {{{value}}}{{/isInteger}}{{^-last}},
             {{/-last}}{{/enumVars}}{{/allowableValues}}

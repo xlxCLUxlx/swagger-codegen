@@ -21,9 +21,9 @@ using JsonSubTypes;
 {{/models}}
 {{^netStandard}}
 {{#generatePropertyChanged}}
+using System.ComponentModel;
 using PropertyChanged;
 {{/generatePropertyChanged}}
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 {{/netStandard}}
 using SwaggerDateConverter = {{packageName}}.Client.SwaggerDateConverter;
