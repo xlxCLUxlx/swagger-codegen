@@ -376,6 +376,10 @@ public class DefaultCodegen {
     // override to post-process any model properties
     @SuppressWarnings("unused")
     public void postProcessModelProperty(CodegenModel model, CodegenProperty property){
+    	if (property.name.equals("DirectActivityModeType"))
+    	{
+    		String stop = "stop";
+    	}
     }
 
     // override to post-process any parameters
@@ -3661,6 +3665,12 @@ public class DefaultCodegen {
      */
     public void updateCodegenPropertyEnum(CodegenProperty var) {
         Map<String, Object> allowableValues = var.allowableValues;
+        
+        if (var.name.equals("DirectActivityModeType"))
+    	{
+    		@SuppressWarnings("unused")
+			String stop = "stop";
+    	}
 
         // handle ArrayProperty
         if (var.items != null) {
@@ -3675,26 +3685,40 @@ public class DefaultCodegen {
         if (values == null) {
             return;
         }
-
-        // put "enumVars" map into `allowableValues", including `name` and `value`
-        List<Map<String, String>> enumVars = new ArrayList<Map<String, String>>();
-        String commonPrefix = findCommonPrefixOfVars(values);
-        int truncateIdx = commonPrefix.length();
-        for (Object value : values) {
-            Map<String, String> enumVar = new HashMap<String, String>();
-            String enumName;
-            if (truncateIdx == 0) {
-                enumName = value.toString();
-            } else {
-                enumName = value.toString().substring(truncateIdx);
-                if ("".equals(enumName)) {
-                    enumName = value.toString();
-                }
-            }
-            enumVar.put("name", toEnumVarName(enumName, var.datatype));
-            enumVar.put("value", toEnumValue(value.toString(), var.datatype));
-            enumVars.add(enumVar);
-        }
+        
+    	List<Object> vendorEnumValues = null;
+    	if (var.vendorExtensions != null)
+    	{
+    		Map<String, Object> vendorExtensions = var.vendorExtensions;
+    		vendorEnumValues = (List<Object>) vendorExtensions.get("x-enum-values");
+    	}
+    	
+    	List<Map<String, String>> enumVars = new ArrayList<Map<String, String>>();
+    	if (vendorEnumValues != null)
+    	{
+    		enumVars = getEnumVarFromVendorExtension(var.datatype, vendorEnumValues);
+    	}
+    	else
+    	{
+	        // put "enumVars" map into `allowableValues", including `name` and `value`
+	        String commonPrefix = findCommonPrefixOfVars(values);
+	        int truncateIdx = commonPrefix.length();
+	        for (Object value : values) {
+	            Map<String, String> enumVar = new HashMap<String, String>();
+	            String enumName;
+	            if (truncateIdx == 0) {
+	                enumName = value.toString();
+	            } else {
+	                enumName = value.toString().substring(truncateIdx);
+	                if ("".equals(enumName)) {
+	                    enumName = value.toString();
+	                }
+	            }
+	            enumVar.put("name", toEnumVarName(enumName, var.datatype));
+	            enumVar.put("value", toEnumValue(value.toString(), var.datatype));
+	            enumVars.add(enumVar);
+	        }
+    	}
         allowableValues.put("enumVars", enumVars);
 
         // handle default value for enum, e.g. available => StatusEnum.AVAILABLE
@@ -3710,6 +3734,36 @@ public class DefaultCodegen {
                 var.defaultValue = toEnumDefaultValue(enumName, var.datatypeWithEnum);
             }
         }
+    }
+    
+    /**
+     * Handle the vendor extensions for enum values from Bungie when
+     * it is defined at the property level.
+     *
+     * @param datatype the data type for the enum
+     * @param vendorExtValues the values for the enum
+     * @return the newly constructed enumVars
+     */
+    public List<Map<String, String>> getEnumVarFromVendorExtension(String datatype, List<Object> vendorExtValues)
+    {
+    	List<Map<String, String>> enumVars = new ArrayList<Map<String, String>>();
+    
+    	for (Object vendorExtValue : vendorExtValues) {
+    		Map<String, String> enumVar = new HashMap<String, String>();
+            String enumName = ((Map<Character, String>) vendorExtValue).get("identifier").toString();
+            String enumValue = ((Map<Character, String>) vendorExtValue).get("numericValue").toString();
+            String enumDescription = "";
+            Object enumDescObj = ((Map<Character, String>) vendorExtValue).get("description");
+            if (enumDescObj != null)
+            	enumDescription = enumDescObj.toString();
+            enumVar.put("name", toEnumVarName(enumName, datatype));
+            enumVar.put("value", toEnumValue(enumValue, datatype));
+            if (StringUtils.isNotEmpty(enumDescription) && StringUtils.isNotBlank(enumDescription))
+            	 enumVar.put("description", enumDescription);
+            enumVars.add(enumVar);
+        }
+    
+    	return enumVars;
     }
 
     /**
