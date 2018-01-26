@@ -41,6 +41,18 @@ public class CSharpClientCodegen extends AbstractCSharpCodegen {
 
     public CSharpClientCodegen() {
         super();
+        
+        apiPackage = "Api";
+        modelPackage = "Model";
+        clientPackage = "Client";
+        packageName =  "BungieNetPlatform";
+        packageVersion = "2.1.3";
+        packageTitle = "BungieNetPlatform Swagger Library";
+        packageDescription = "A library for the Bungie.net Destiny 2 API";
+        packageCompany = "Eric Boulden";
+        packageProductName = "BungieNetPlatform";
+        packageCopyright = "";
+        
         supportsInheritance = true;
         modelTemplateFiles.put("model.mustache", ".cs");
         apiTemplateFiles.put("api.mustache", ".cs");
@@ -175,7 +187,9 @@ public class CSharpClientCodegen extends AbstractCSharpCodegen {
         if (isEmpty(modelPackage)) {
             modelPackage = "Model";
         }
-        clientPackage = "Client";
+        if (isEmpty(clientPackage)) {
+        	clientPackage = "Client";
+        }
 
         Boolean excludeTests = false;
         if (additionalProperties.containsKey(CodegenConstants.EXCLUDE_TESTS)) {
